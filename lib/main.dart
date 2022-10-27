@@ -6,7 +6,9 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:linkedin_clone/data/blocs/auth/auth_bloc.dart';
+import 'package:linkedin_clone/data/blocs/bottombloc/bottombloc_bloc.dart';
 import 'package:linkedin_clone/data/repositories/auth/auth_repositories.dart';
+import 'package:linkedin_clone/data/services/shared_services.dart';
 
 import './common/constants/theme.dart';
 import './modules/modules.dart';
@@ -36,6 +38,7 @@ class MyApp extends StatelessWidget {
             RepositoryProvider(
               create: (_) => AuthRepository(
                 auth: FirebaseAuth.instance,
+                sharedServices: SharedServices(),
               ),
             )
           ],
@@ -45,6 +48,12 @@ class MyApp extends StatelessWidget {
                 create: (context) => AuthBloc(
                   authRepository: context.read<AuthRepository>(),
                 ),
+              ),
+              BlocProvider(
+                create: (context) => BottomBloc()
+                  ..add(
+                    const ChangePageEvent(pageIndex: 0),
+                  ),
               ),
             ],
             child: MaterialApp(

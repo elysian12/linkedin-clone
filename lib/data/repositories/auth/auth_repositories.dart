@@ -1,12 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:linkedin_clone/data/services/shared_services.dart';
 
 import '../../../firebase_options.dart';
 
 class AuthRepository {
   final FirebaseAuth auth;
+  final SharedServices sharedServices;
   const AuthRepository({
     required this.auth,
+    required this.sharedServices,
   });
 
   //SignIn With Google
@@ -36,6 +39,7 @@ class AuthRepository {
       var userCredentail = await auth.signInWithCredential(credential);
 
       if (userCredentail.user != null) {
+        sharedServices.setSharedUID(userCredentail.user!.uid);
         results.addAll({'success': true});
       }
     } on FirebaseAuthException catch (e) {

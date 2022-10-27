@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:linkedin_clone/common/constants/colors.dart';
 import 'package:linkedin_clone/common/constants/helper.dart';
+import 'package:linkedin_clone/data/services/shared_services.dart';
 
 import '../../modules.dart';
 
@@ -23,12 +25,20 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
   }
 
-  void naviagate() {
-    //logic for auth persistance
-    Future.delayed(const Duration(seconds: 1)).then((value) {
-      Navigator.pushNamedAndRemoveUntil(
-          context, LandingScreen.routeName, (route) => false);
-    });
+  void naviagate() async {
+    final uid = await SharedServices().getSharedUID();
+
+    if (uid != null) {
+      Future.delayed(const Duration(seconds: 1)).then((value) {
+        Navigator.pushNamedAndRemoveUntil(
+            context, MainScreen.routeName, (route) => false);
+      });
+    } else {
+      Future.delayed(const Duration(seconds: 1)).then((value) {
+        Navigator.pushNamedAndRemoveUntil(
+            context, LandingScreen.routeName, (route) => false);
+      });
+    }
   }
 
   @override

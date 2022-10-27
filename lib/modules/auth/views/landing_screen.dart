@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -7,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:linkedin_clone/common/constants/colors.dart';
 import 'package:linkedin_clone/common/constants/helper.dart';
+import 'package:linkedin_clone/modules/modules.dart';
 
 import '../../../common/widgets/widgets.dart';
 import '../../../data/blocs/blocs.dart';
@@ -32,7 +31,12 @@ class LandingScreen extends StatelessWidget {
               EasyLoading.show(status: 'loading...');
             }
             if (state is AuthenticatedState) {
-              EasyLoading.showSuccess('Great Success!');
+              EasyLoading.showSuccess('Success!');
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                MainScreen.routeName,
+                (route) => false,
+              );
             }
           },
           child: SizedBox(
