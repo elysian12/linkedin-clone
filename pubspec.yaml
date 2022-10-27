@@ -23,6 +23,9 @@ dependencies:
   google_sign_in: ^5.4.2
   flutter_easyloading: ^3.0.5
   shared_preferences: ^2.0.15
+  cloud_firestore: ^4.0.3
+  uuid: ^3.0.6
+  intl: ^0.17.0
 
 dev_dependencies:
   flutter_test:

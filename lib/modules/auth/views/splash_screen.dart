@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:linkedin_clone/common/constants/colors.dart';
 import 'package:linkedin_clone/common/constants/helper.dart';
+import 'package:linkedin_clone/data/repositories/auth_repositories.dart';
 import 'package:linkedin_clone/data/services/shared_services.dart';
 
 import '../../modules.dart';
@@ -30,8 +32,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (uid != null) {
       Future.delayed(const Duration(seconds: 1)).then((value) {
-        Navigator.pushNamedAndRemoveUntil(
-            context, MainScreen.routeName, (route) => false);
+        context.read<AuthRepository>().setUser().then((value) =>
+            Navigator.pushNamedAndRemoveUntil(
+                context, MainScreen.routeName, (route) => false));
       });
     } else {
       Future.delayed(const Duration(seconds: 1)).then((value) {

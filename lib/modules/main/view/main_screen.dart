@@ -14,7 +14,6 @@ class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
       body: BlocBuilder<BottomBloc, BottomBlocState>(
         builder: (context, state) {
           if (state is BottomNavigationCurrentState) {
@@ -37,7 +36,8 @@ class MainScreen extends StatelessWidget {
       bottomNavigationBar: BlocBuilder<BottomBloc, BottomBlocState>(
         builder: (context, state) {
           if (state is BottomNavigationCurrentState) {
-            return SizedBox(
+            return Container(
+              color: AppColors.primaryColor,
               height: 80,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -46,9 +46,13 @@ class MainScreen extends StatelessWidget {
                   bool isActive = state.currentIndex == index;
                   return InkWell(
                     onTap: () {
-                      context
-                          .read<BottomBloc>()
-                          .add(ChangePageEvent(pageIndex: index));
+                      if (index == 2) {
+                        Navigator.pushNamed(context, PostScreen.routeName);
+                      } else {
+                        context
+                            .read<BottomBloc>()
+                            .add(ChangePageEvent(pageIndex: index));
+                      }
                     },
                     child: index == 0
                         ? _buildBottomNavigationItem(
@@ -95,7 +99,10 @@ class MainScreen extends StatelessWidget {
         const SizedBox(
           height: 10,
         ),
-        Icon(iconData),
+        Icon(
+          iconData,
+          color: isAcive ? AppColors.black : null,
+        ),
         Text(
           label,
           // style: TextStyle(fontSize: 9.sp),

@@ -7,8 +7,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:linkedin_clone/data/blocs/auth/auth_bloc.dart';
 import 'package:linkedin_clone/data/blocs/bottombloc/bottombloc_bloc.dart';
-import 'package:linkedin_clone/data/repositories/auth/auth_repositories.dart';
+import 'package:linkedin_clone/data/blocs/post/post_bloc.dart';
+import 'package:linkedin_clone/data/repositories/auth_repositories.dart';
 import 'package:linkedin_clone/data/services/shared_services.dart';
+import 'package:linkedin_clone/data/services/user_service.dart';
 
 import './common/constants/theme.dart';
 import './modules/modules.dart';
@@ -39,6 +41,7 @@ class MyApp extends StatelessWidget {
               create: (_) => AuthRepository(
                 auth: FirebaseAuth.instance,
                 sharedServices: SharedServices(),
+                userServices: UserServices(),
               ),
             )
           ],
@@ -48,6 +51,9 @@ class MyApp extends StatelessWidget {
                 create: (context) => AuthBloc(
                   authRepository: context.read<AuthRepository>(),
                 ),
+              ),
+              BlocProvider(
+                create: (context) => PostBloc(),
               ),
               BlocProvider(
                 create: (context) => BottomBloc()
