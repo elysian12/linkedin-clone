@@ -11,6 +11,7 @@ class AssetHelper {
   static const String logo = 'assets/logo.svg';
   static const String longLogo = 'assets/login-logo.svg';
   static const String google = 'assets/google.svg';
+  static const String heart = 'assets/heart.svg';
 }
 
 class ImageHelper {

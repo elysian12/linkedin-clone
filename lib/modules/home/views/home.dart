@@ -1,12 +1,18 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_reaction_button/flutter_reaction_button.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:linkedin_clone/common/constants/colors.dart';
+import 'package:linkedin_clone/common/constants/helper.dart';
 import 'package:linkedin_clone/data/models/post_model.dart';
 import 'package:linkedin_clone/data/models/user_model.dart';
 import 'package:linkedin_clone/data/services/post_services.dart';
 import 'package:linkedin_clone/data/services/user_service.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../data/repositories/auth_repositories.dart';
 
@@ -87,37 +93,36 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
                 return SliverList(
                   delegate: SliverChildListDelegate(
-                    snapshot.data!
-                        .map(
-                          (post) => Container(
-                            color: AppColors.primaryColor,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 14),
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                PostHeader(
-                                  uid: post.username,
-                                  publishedAt: post.datePublished,
-                                ),
-                                SizedBox(
-                                  height: 10.h,
-                                ),
-                                Text(
-                                  post.description,
-                                  style: textTheme.headline6,
-                                ),
-                                const Divider(),
-                                PostFooter(
-                                  post: post,
-                                  postServices: _postServices,
-                                )
-                              ],
-                            ),
+                    snapshot.data!.map(
+                      (post) {
+                        return Container(
+                          color: AppColors.primaryColor,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 14),
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              PostHeader(
+                                uid: post.username,
+                                publishedAt: post.datePublished,
+                              ),
+                              SizedBox(
+                                height: 10.h,
+                              ),
+                              PostBody(
+                                post: post,
+                              ),
+                              const Divider(),
+                              PostFooter(
+                                post: post,
+                                postServices: _postServices,
+                              )
+                            ],
                           ),
-                        )
-                        .toList(),
+                        );
+                      },
+                    ).toList(),
                   ),
                 );
               }), // Pla
@@ -163,7 +168,7 @@ class PostHeader extends StatelessWidget {
                     style: textTheme.headline6,
                   ),
                   Text(user.aboutYou!),
-                  Text(DateFormat.Hm().format(publishedAt)),
+                  Text(timeago.format(publishedAt)),
                 ],
               ),
               const Spacer(),
@@ -188,24 +193,48 @@ class PostFooter extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        IconButton(
-          padding: EdgeInsets.only(bottom: 6),
-          onPressed: () {
-            postServices.likePost(
-                post.postId, context.read<AuthRepository>().user!.uid!);
+        ReactionButton(
+          boxPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          onReactionChanged: (value) {
+            log(value!);
+            if (value == 'Like') {
+              postServices.likePost(
+                  post.postId, context.read<AuthRepository>().user!.uid!);
+            }
           },
-          icon: Column(
-            children: [
-              Icon(
-                Icons.thumb_up,
-                color: post.likes
-                        .contains(context.read<AuthRepository>().user!.uid!)
-                    ? AppColors.primaryBlueColor
-                    : null,
+          reactions: [
+            Reaction(
+              icon: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Icon(
+                  Icons.thumb_up,
+                  color: AppColors.primaryBlueColor,
+                ),
               ),
-              Text(post.likes.length.toString())
-            ],
-          ),
+              value: 'Like',
+            ),
+            Reaction(
+              icon: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Icon(
+                  Icons.celebration,
+                  color: Colors.green,
+                ),
+              ),
+              value: 'Celebrate',
+            ),
+            Reaction(
+              icon: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: SvgPicture.asset(
+                  AssetHelper.heart,
+                  height: 20,
+                  color: Colors.pink,
+                ),
+              ),
+              value: 'Heart',
+            ),
+          ],
         ),
         IconButton(
           onPressed: () {},
@@ -218,6 +247,44 @@ class PostFooter extends StatelessWidget {
         IconButton(
           onPressed: () {},
           icon: const Icon(Icons.send_rounded),
+        ),
+      ],
+    );
+  }
+}
+
+class PostBody extends StatelessWidget {
+  final Post post;
+  const PostBody({
+    super.key,
+    required this.post,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          post.description,
+          style: textTheme.headline6,
+        ),
+        SizedBox(
+          height: 10.h,
+        ),
+        post.postType == PostType.photo
+            ? Image.network(post.postUrl)
+            : const SizedBox.shrink(),
+        SizedBox(
+          height: 10.h,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('${post.likes.length}  Likes'),
+            Text('${post.comments.length} Comments'),
+          ],
         ),
       ],
     );

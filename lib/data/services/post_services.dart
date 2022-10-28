@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 import '../models/post_model.dart';
 
 class PostServices {
+  firebase_storage.FirebaseStorage storage =
+      firebase_storage.FirebaseStorage.instance;
   final CollectionReference _postCollectionReference =
       FirebaseFirestore.instance.collection('posts');
 
@@ -17,6 +21,24 @@ class PostServices {
   final List<List<Post>> _allPagedResults = <List<Post>>[];
   bool _hasMorePost = true;
 
+  //upload a photo
+  Future<String?> uploadPhoto(File file, String uuid) async {
+    String? imgUrl;
+    var ext = file.path.split('.').last;
+    log('@@ this is extension : $ext');
+    try {
+      await firebase_storage.FirebaseStorage.instance
+          .ref('posts/$uuid.$ext')
+          .putFile(file);
+      imgUrl = await storage.ref('posts/$uuid.$ext').getDownloadURL();
+    } on FirebaseException catch (e) {
+      // e.g, e.code == 'canceled'
+      log(e.message!);
+    }
+    return imgUrl;
+  }
+
+  // like a post
   void likePost(String postID, String username) async {
     try {
       var postRef = await _postCollectionReference.doc(postID).get();

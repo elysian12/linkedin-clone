@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 class Post {
   final String description;
   final String username;
@@ -55,7 +57,7 @@ class Post {
       'LINK': PostType.link,
       'TEXT': PostType.text,
     };
-    return map[text] ?? PostType.photo;
+    return map[text!.toUpperCase()]!;
   }
 }
 
