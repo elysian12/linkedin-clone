@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hashtagable/hashtagable.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:linkedin_clone/common/constants/colors.dart';
 import 'package:linkedin_clone/data/models/post_model.dart';
 import 'package:linkedin_clone/data/repositories/auth_repositories.dart';
 import 'package:linkedin_clone/data/services/post_services.dart';
+import 'package:linkedin_clone/modules/home/widgets/video_player.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../data/blocs/post/post_bloc.dart';
@@ -27,6 +29,7 @@ class _PostScreenState extends State<PostScreen> {
 
   String descText = '';
   File? photo;
+  File? video;
 
   @override
   void initState() {
@@ -66,6 +69,10 @@ class _PostScreenState extends State<PostScreen> {
                 postUrl =
                     await PostServices().uploadPhoto(photo!, const Uuid().v4());
               }
+              if (video != null) {
+                postUrl =
+                    await PostServices().uploadPhoto(video!, const Uuid().v4());
+              }
               context.read<PostBloc>().add(
                     CreatePostEvent(
                       post: Post(
@@ -73,9 +80,16 @@ class _PostScreenState extends State<PostScreen> {
                         username: user!.uid!,
                         postId: const Uuid().v4(),
                         datePublished: DateTime.now(),
-                        postUrl: photo != null ? postUrl! : '',
-                        postType:
-                            photo != null ? PostType.photo : PostType.text,
+                        postUrl: photo != null
+                            ? postUrl!
+                            : video != null
+                                ? postUrl!
+                                : '',
+                        postType: photo != null
+                            ? PostType.photo
+                            : video != null
+                                ? PostType.video
+                                : PostType.text,
                       ),
                     ),
                   );
@@ -124,16 +138,18 @@ class _PostScreenState extends State<PostScreen> {
                     ),
                   ],
                 ),
-                TextFormField(
+                HashTagTextField(
                   onChanged: (value) {
                     setState(() {
                       descText = value;
                     });
                   },
                   controller: desc,
-                  style: textTheme.headline6,
+                  basicStyle: textTheme.headline6,
+                  decoratedStyle:
+                      const TextStyle(fontSize: 15, color: Colors.blue),
                   keyboardType: TextInputType.multiline,
-                  maxLines: 10,
+                  maxLines: null,
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: 'What Do you want to talk About ?',
@@ -141,32 +157,34 @@ class _PostScreenState extends State<PostScreen> {
                         .copyWith(color: AppColors.grey, fontSize: 16.sp),
                   ),
                 ),
-                photo == null
+                photo == null && video == null
                     ? const SizedBox.shrink()
-                    : Stack(
-                        children: [
-                          Image.file(photo!),
-                          Positioned(
-                            right: 0,
-                            child: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  photo = null;
-                                });
-                              },
-                              icon: Container(
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.black,
+                    : video != null
+                        ? MyFileVideoPlayer(videoUrl: video!)
+                        : Stack(
+                            children: [
+                              Image.file(photo!),
+                              Positioned(
+                                right: 0,
+                                child: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      photo = null;
+                                    });
+                                  },
+                                  icon: Container(
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.black,
+                                    ),
+                                    child: const Icon(
+                                      Icons.close_sharp,
+                                    ),
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Icons.close_sharp,
-                                ),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
+                              )
+                            ],
+                          ),
               ],
             ),
           ),
@@ -187,6 +205,13 @@ class _PostScreenState extends State<PostScreen> {
               final ImagePicker picker = ImagePicker();
               final XFile? image =
                   await picker.pickVideo(source: ImageSource.gallery);
+              if (image != null) {
+                setState(() {
+                  video = File(image.path);
+                });
+              } else {
+                EasyLoading.showError('Cancelled');
+              }
             },
             icon: const Icon(Icons.videocam),
           ),

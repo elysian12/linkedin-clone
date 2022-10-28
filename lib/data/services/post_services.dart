@@ -39,18 +39,24 @@ class PostServices {
   }
 
   // like a post
-  void likePost(String postID, String username) async {
+  void likePost(String postID, String username, String likeType) async {
     try {
       var postRef = await _postCollectionReference.doc(postID).get();
 
       if (postRef.exists) {
         var post = Post.fromMap(postRef.data() as Map<String, dynamic>);
-        if (post.likes.contains(username)) {
-          post.likes.remove(username);
+        if (post.likes.contains(Like(username: username))) {
+          post.likes.remove(Like(username: username));
         } else {
-          post.likes.add(username);
+          post.likes.add(Like(
+            username: username,
+            createAt: DateTime.now(),
+            likeType: likeType,
+          ));
         }
-        postRef.reference.update({'likes': post.likes});
+        postRef.reference.update({
+          'likes': post.likes.map((e) => e.toMap()).toList(),
+        });
       }
     } catch (e) {
       rethrow;
@@ -70,7 +76,8 @@ class PostServices {
   void requesMorePost() => getposts();
 
   //getPosts
-  void getposts() {
+  void getposts() async {
+    await Future.delayed(const Duration(seconds: 1));
     var pagePostQuery = _postCollectionReference
         .orderBy(
           'datePublished',

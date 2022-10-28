@@ -1,9 +1,11 @@
 import 'dart:developer';
 
+import 'package:equatable/equatable.dart';
+
 class Post {
   final String description;
   final String username;
-  final List<String> likes;
+  final List<Like> likes;
   final List<Comment> comments;
   final String postId;
   final DateTime datePublished;
@@ -25,7 +27,7 @@ class Post {
     return <String, dynamic>{
       'description': description,
       'username': username,
-      'likes': likes.map((x) => x).toList(),
+      'likes': likes.map((x) => x.toMap()).toList(),
       'comments': comments.map((x) => x.toMap()).toList(),
       'postId': postId,
       'datePublished': datePublished.millisecondsSinceEpoch,
@@ -38,7 +40,8 @@ class Post {
     return Post(
       description: map['description'] as String,
       username: map['username'] as String,
-      likes: List<String>.from((map['likes'] as List).map((e) => e).toList()),
+      likes: List<Like>.from(
+          (map['likes'] as List).map((e) => Like.fromMap(e)).toList()),
       comments: List<Comment>.from(
           (map['comments'] as List).map((e) => Comment.fromMap(e)).toList()),
       postId: map['postId'] as String,
@@ -61,28 +64,37 @@ class Post {
   }
 }
 
-class Like {
+class Like extends Equatable {
   final String username;
-  final DateTime createAt;
+  final String? likeType;
+  final DateTime? createAt;
 
-  Like({
+  const Like({
     required this.username,
-    required this.createAt,
+    this.likeType,
+    this.createAt,
   });
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'username': username,
-      'createAt': createAt.millisecondsSinceEpoch,
+      'createAt': createAt!.millisecondsSinceEpoch,
+      'likeType': likeType,
     };
   }
 
   factory Like.fromMap(Map<String, dynamic> map) {
     return Like(
       username: map['username'] as String,
-      createAt: DateTime.fromMillisecondsSinceEpoch(map['createAt'] as int),
+      likeType: map['likeType'] as String,
+      createAt: map['createAt'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['createAt'] as int)
+          : null,
     );
   }
+
+  @override
+  List<Object?> get props => [username];
 }
 
 class Comment {

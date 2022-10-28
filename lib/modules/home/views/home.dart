@@ -1,17 +1,21 @@
 import 'dart:developer';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_reaction_button/flutter_reaction_button.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
+import 'package:hashtagable/hashtagable.dart';
 import 'package:linkedin_clone/common/constants/colors.dart';
 import 'package:linkedin_clone/common/constants/helper.dart';
 import 'package:linkedin_clone/data/models/post_model.dart';
 import 'package:linkedin_clone/data/models/user_model.dart';
 import 'package:linkedin_clone/data/services/post_services.dart';
 import 'package:linkedin_clone/data/services/user_service.dart';
+import 'package:linkedin_clone/modules/home/widgets/shimmer_widget.dart';
+import 'package:linkedin_clone/modules/home/widgets/video_player.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../data/repositories/auth_repositories.dart';
@@ -40,93 +44,100 @@ class _HomeScreenState extends State<HomeScreen> {
     final w = MediaQuery.of(context).size.width;
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            floating: true,
-            leadingWidth: 70,
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 10, bottom: 10),
-              child: CircleAvatar(
-                backgroundImage: Image.network(
-                        context.read<AuthRepository>().user!.profileUrl!)
-                    .image,
-              ),
-            ),
-            centerTitle: false,
-            titleSpacing: 10,
-            title: Padding(
-              padding: const EdgeInsets.only(right: 10, bottom: 10),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search',
-                  prefixIcon: const Icon(Icons.search),
-                  border: InputBorder.none,
-                  filled: true,
-                  fillColor: AppColors.primaryBlueColor.withOpacity(0.1),
+      drawer: Drawer(),
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              floating: true,
+              leadingWidth: 70,
+              leading: Padding(
+                padding: const EdgeInsets.only(left: 10, bottom: 10),
+                child: CircleAvatar(
+                  backgroundImage: Image.network(
+                          context.read<AuthRepository>().user!.profileUrl!)
+                      .image,
                 ),
               ),
-            ),
-            actions: <Widget>[
-              IconButton(
-                padding: const EdgeInsets.only(right: 20),
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.chat,
-                  size: 30,
-                  color: AppColors.grey,
+              centerTitle: false,
+              titleSpacing: 10,
+              title: Padding(
+                padding: const EdgeInsets.only(right: 10, bottom: 10),
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search',
+                    prefixIcon: const Icon(Icons.search),
+                    border: InputBorder.none,
+                    filled: true,
+                    fillColor: AppColors.primaryBlueColor.withOpacity(0.1),
+                  ),
                 ),
-              )
-            ],
-          ),
-          StreamBuilder<List<Post>>(
-              stream: _postServices.postStreamController.stream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+              ),
+              actions: <Widget>[
+                IconButton(
+                  padding: const EdgeInsets.only(right: 20),
+                  onPressed: () {},
+                  icon: const Icon(
+                    Icons.chat,
+                    size: 30,
+                    color: AppColors.grey,
+                  ),
+                )
+              ],
+            ),
+            StreamBuilder<List<Post>>(
+                stream: _postServices.postStreamController.stream,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return SliverList(
+                      delegate: SliverChildListDelegate(
+                        [
+                          PostShimmerWidget(),
+                          PostShimmerWidget(),
+                          PostShimmerWidget(),
+                          PostShimmerWidget(),
+                          PostShimmerWidget(),
+                        ],
+                      ),
+                    );
+                  }
                   return SliverList(
                     delegate: SliverChildListDelegate(
-                      [
-                        const CircularProgressIndicator(),
-                      ],
+                      snapshot.data!.map(
+                        (post) {
+                          return Container(
+                            color: AppColors.primaryColor,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 14),
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                PostHeader(
+                                  uid: post.username,
+                                  publishedAt: post.datePublished,
+                                ),
+                                SizedBox(
+                                  height: 10.h,
+                                ),
+                                PostBody(
+                                  post: post,
+                                ),
+                                const Divider(),
+                                PostFooter(
+                                  post: post,
+                                  postServices: _postServices,
+                                )
+                              ],
+                            ),
+                          );
+                        },
+                      ).toList(),
                     ),
                   );
-                }
-                return SliverList(
-                  delegate: SliverChildListDelegate(
-                    snapshot.data!.map(
-                      (post) {
-                        return Container(
-                          color: AppColors.primaryColor,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 14),
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              PostHeader(
-                                uid: post.username,
-                                publishedAt: post.datePublished,
-                              ),
-                              SizedBox(
-                                height: 10.h,
-                              ),
-                              PostBody(
-                                post: post,
-                              ),
-                              const Divider(),
-                              PostFooter(
-                                post: post,
-                                postServices: _postServices,
-                              )
-                            ],
-                          ),
-                        );
-                      },
-                    ).toList(),
-                  ),
-                );
-              }), // Pla
-        ],
+                }), // Pla
+          ],
+        ),
       ),
     );
   }
@@ -197,10 +208,11 @@ class PostFooter extends StatelessWidget {
           boxPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           onReactionChanged: (value) {
             log(value!);
-            if (value == 'Like') {
-              postServices.likePost(
-                  post.postId, context.read<AuthRepository>().user!.uid!);
-            }
+            postServices.likePost(
+              post.postId,
+              context.read<AuthRepository>().user!.uid!,
+              value,
+            );
           },
           reactions: [
             Reaction(
@@ -262,20 +274,38 @@ class PostBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
     final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          post.description,
-          style: textTheme.headline6,
+        HashTagText(
+          text: post.description,
+          basicStyle: textTheme.headline6!,
+          decoratedStyle: textTheme.headline6!.copyWith(
+            color: Colors.blueAccent,
+          ),
+          onTap: (text) {
+            // print(text);
+          },
         ),
         SizedBox(
           height: 10.h,
         ),
         post.postType == PostType.photo
-            ? Image.network(post.postUrl)
-            : const SizedBox.shrink(),
+            ? CachedNetworkImage(
+                imageUrl: post.postUrl,
+                placeholder: (context, url) => Container(
+                  margin: const EdgeInsets.only(top: 15),
+                  width: w,
+                  height: 200,
+                  color: Colors.white,
+                ),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
+              )
+            : post.postType == PostType.video
+                ? MyNetworkVideoPlayer(videoUrl: post.postUrl)
+                : const SizedBox.shrink(),
         SizedBox(
           height: 10.h,
         ),

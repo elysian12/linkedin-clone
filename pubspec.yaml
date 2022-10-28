@@ -31,6 +31,10 @@ dependencies:
   firebase_storage: ^11.0.3
   flutter_reaction_button: ^2.0.1+2
   timeago: ^3.3.0
+  shimmer: ^2.0.0
+  hashtagable: ^2.1.0
+  cached_network_image: ^3.2.2
+  video_player: ^2.4.7
 
 dev_dependencies:
   flutter_test:
